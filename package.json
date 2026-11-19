@@ -1,0 +1,8 @@
+{
+  "name": "busomad",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Busomad: live bus tracking for Tajikistan (sample app)",
+  "scripts": { "start": "node server.js", "test": "node --test test/unit.js" },
+  "engines": { "node": ">=18" }
+}

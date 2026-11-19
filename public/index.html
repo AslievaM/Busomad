@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08120F">
+<title>Busomad · live buses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+/* Layout concept: one live network, three ways to read it: map, the shelter screen, and a trip planner. Dark green ground, amber for the brand, one tint per vehicle type. */
+:root{
+  --bg:#08120F; --surface:#10201B; --surface-2:#172B25; --line:#2A453D;
+  --map-bg:#0C1A16; --road:#21392F; --road-minor:#16291F;
+  --fg:#EAF2EE; --muted:#9DB5AB;
+  --accent:#F2A900; --accent-ink:#10150F;
+  --trolley:#F4F7F5; --mini:#6CB7FF;
+  --good:#7BD88F; --warn:#FF8A5C; --focus:#FFFFFF;
+  --font-display:'Space Grotesk','Inter',system-ui,sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{color-scheme:dark}
+body{
+  margin:0;background:var(--bg);color:var(--fg);
+  font-family:var(--font-body);font-size:15px;line-height:1.45;
+  padding-block:18px 32px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.muted{color:var(--muted)}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.logo{flex:none;width:56px;height:56px;border-radius:16px;background:var(--accent);display:grid;place-items:center}
+.name{font:700 34px/1 var(--font-display);letter-spacing:-.01em;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.name small{font:500 14px var(--font-body);color:var(--muted);letter-spacing:0}
+.tag{color:var(--accent);font-weight:600;font-size:14px;margin-top:5px}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;padding:0 14px;min-height:44px;min-width:44px;border-radius:999px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.tabs button{flex:none;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:600}
+.tabs button[aria-current="page"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
+.card h2{margin:0 0 10px;font:700 18px/1.2 var(--font-display)}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:18px;align-items:start}
+@media(max-width:980px){.stage{grid-template-columns:minmax(0,1fr)}}
+.side{display:flex;flex-direction:column;gap:18px;min-width:0}
+
+/* map card */
+.mapbar{display:flex;flex-wrap:wrap;gap:12px 18px;justify-content:space-between;align-items:center;margin-bottom:12px}
+.clock{font:700 30px/1 var(--font-display);font-variant-numeric:tabular-nums}
+.clock small{display:block;font:500 12px var(--font-body);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+svg.map{width:100%;height:auto;display:block;border-radius:12px;background:var(--map-bg);touch-action:manipulation}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;color:var(--muted);font-size:13px}
+.key{display:inline-flex;align-items:center;gap:7px}
+.key i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.routes{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.rbtn{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:4px 14px 4px 5px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-size:13px;text-align:left}
+.rbtn[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.note{margin:12px 0 0;font-size:12.5px;color:var(--muted)}
+
+/* chips and rows */
+.chip{display:inline-grid;place-items:center;min-width:44px;height:44px;padding:0 6px;border-radius:10px;font:700 21px/1 var(--font-display);color:var(--accent-ink)}
+.chip.sm{min-width:38px;height:38px;font-size:17px}
+.chip.xl{min-width:64px;height:64px;font-size:32px;border-radius:14px}
+.chip.t-bus{background:var(--accent)}.chip.t-trolley{background:var(--trolley)}.chip.t-mini{background:var(--mini)}
+.stoppick{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.stoppick label,.field label{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+select{width:100%;min-height:48px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);appearance:auto}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid transparent;background:var(--surface-2);cursor:pointer}
+.row:hover{border-color:var(--line)}
+.row.sel{border-color:var(--accent)}
+.row-t{display:flex;flex-direction:column;min-width:0}
+.row-d{font-weight:600;overflow-wrap:anywhere}
+.row-s{font-size:12.5px;color:var(--muted)}
+.st.ok{color:var(--good)}.st.late{color:var(--warn)}
+.eta{font:700 26px/1 var(--font-display);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.eta small{font:500 12px var(--font-body);color:var(--muted);margin-left:3px}
+.eta .due{color:var(--accent)}
+.bh{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.bh-t{font-weight:600}
+.bh-s{font-size:13px;color:var(--muted)}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.hd h2{margin:0}
+.nx{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line)}
+.nx b{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* board (screen at the stop) */
+.board{border-radius:28px;background:#050D0A;border:1px solid var(--line);overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.board-band{background:var(--accent);color:var(--accent-ink);text-align:center;font-weight:700;letter-spacing:.2em;font-size:13px;padding:12px 8px}
+.board-body{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;padding:28px}
+@media(max-width:900px){.board-body{grid-template-columns:minmax(0,1fr);padding:16px;gap:20px}}
+.b-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}
+.b-kicker{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:6px}
+.b-stop{font:700 clamp(30px,5vw,52px)/1.05 var(--font-display);overflow-wrap:anywhere}
+.b-clock{font:500 clamp(26px,4vw,40px)/1 var(--font-display);color:var(--accent);font-variant-numeric:tabular-nums}
+.b-cols{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:16px;padding:0 16px 8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.b-rows{display:flex;flex-direction:column;gap:10px}
+.b-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:16px;padding:12px 16px;border-radius:16px;background:var(--surface)}
+.b-dest{font:600 clamp(18px,2.6vw,26px)/1.2 var(--font-body);overflow-wrap:anywhere}
+.b-dest small{display:block;font:400 13px var(--font-body);color:var(--muted);margin-top:2px}
+.b-eta{font:700 clamp(30px,4.4vw,46px)/1 var(--font-display);color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.b-eta small{font:500 15px var(--font-body);color:var(--muted);margin-left:4px}
+.board-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.board-side svg.map{border:1px solid var(--line)}
+.qr-row{display:flex;gap:14px;align-items:center;padding:14px;border-radius:16px;background:var(--surface)}
+.qr{flex:none;width:92px;height:92px;border-radius:8px;overflow:hidden;background:#fff}
+.qr svg{display:block;width:100%;height:100%}
+.qr-t{font-size:14px;line-height:1.35}
+.qr-t small{display:block;color:var(--muted);margin-top:4px}
+.board-ctl{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;padding:16px 28px 22px;border-top:1px solid var(--line)}
+.board-ctl .field{min-width:220px;flex:1 1 220px;max-width:360px;display:flex;flex-direction:column;gap:6px}
+.check{display:inline-flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.check input{width:22px;height:22px;accent-color:var(--accent)}
+.langs{display:flex;gap:8px}
+.pill{padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--muted)}
+.pill.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+/* planner */
+.planbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:end}
+@media(max-width:700px){.planbar{grid-template-columns:minmax(0,1fr)}}
+.field{display:flex;flex-direction:column;gap:6px}
+.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:16px}
+.opt{border:1px solid var(--line);background:var(--surface-2);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.opt-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.opt-h strong{font:700 17px var(--font-display)}
+.opt-total{color:var(--muted);font-size:13px}
+.opt-total b{color:var(--accent);font:700 22px var(--font-display);margin-left:4px}
+.legs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.leg{display:flex;gap:12px;align-items:flex-start}
+.leg b{font-variant-numeric:tabular-nums}
+.leg .sub{font-size:13px;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* ---- Busomad live additions ---- */
+.mapbox{width:100%;height:min(62vh,640px);min-height:380px;border-radius:12px;overflow:hidden;background:var(--map-bg);position:relative}
+.maplibregl-ctrl-group{background:var(--surface)!important;border:1px solid var(--line);box-shadow:none!important}
+.maplibregl-ctrl-group button{background-color:transparent!important}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon{filter:invert(1) brightness(1.4)}
+.maplibregl-ctrl-attrib{background:rgba(8,18,15,.75)!important;color:var(--muted)!important}
+.maplibregl-ctrl-attrib a{color:var(--muted)!important}
+.busm{width:38px;height:38px;padding:0;border-radius:50%;border:3px solid var(--map-bg);display:grid;place-items:center;cursor:pointer;font:700 15px var(--font-display);color:var(--accent-ink);position:relative}
+.busm.t-bus{background:var(--accent)}.busm.t-trolley{background:var(--trolley)}.busm.t-mini{background:var(--mini)}
+.busm .pulse{position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--accent);opacity:0;pointer-events:none}
+.busm.late{box-shadow:0 0 0 3px var(--warn)}
+.busm.sel{box-shadow:0 0 0 3px #fff}.busm.sel .pulse{opacity:.9;animation:pulse 1.8s ease-out infinite}
+.busm.dim{opacity:.3}.busm.stale{opacity:.5}
+.me{width:18px;height:18px;border-radius:50%;background:#2d7fff;border:3px solid #fff;box-shadow:0 0 0 7px rgba(45,127,255,.3)}
+@keyframes pulse{0%{transform:scale(.8);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+@media(prefers-reduced-motion:reduce){.busm .pulse{animation:none!important}}
+.badge{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.badge i{width:9px;height:9px;border-radius:50%;background:var(--warn);display:inline-block}
+.badge.on{color:var(--good)}.badge.on i{background:var(--good);animation:blink 2s infinite}
+@keyframes blink{50%{opacity:.35}}
+.seg.full{display:flex;width:100%}.seg.full button{flex:1}
+input[type=text],input[type=password],input[type=number]{width:100%;min-height:48px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.msg{padding:10px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:14px}
+.msg.err{border-color:var(--warn);color:var(--warn)}
+.narrow{max-width:640px}
+.kiosk .top,.kiosk .tabs,.kiosk .board-ctl{display:none}
+.kiosk body,body.kiosk{padding-block:0}
+.kiosk .board{border-radius:0;min-height:100vh}
+.rbtn .chip{flex:none}
+.recbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;padding:12px;border:1px solid var(--accent);border-radius:12px;background:var(--surface-2)}
+.recbar input{flex:1 1 160px;min-height:48px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.nearby{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+svg.mini{width:100%;height:auto;display:block;border-radius:12px;background:var(--map-bg);border:1px solid var(--line)}
+svg.mini .rl{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg width="42" height="42" viewBox="0 0 48 48"><path d="M18 15Q24 10 30 15" fill="none" stroke="#0F1A17" stroke-width="3" stroke-linecap="round"/><path d="M13 11Q24 1 35 11" fill="none" stroke="#0F1A17" stroke-width="3" stroke-linecap="round"/><rect x="12" y="21" width="24" height="21" rx="5" fill="none" stroke="#0F1A17" stroke-width="3"/><path d="M12 31h24" stroke="#0F1A17" stroke-width="3"/><circle cx="18" cy="37" r="2" fill="#0F1A17"/><circle cx="30" cy="37" r="2" fill="#0F1A17"/></svg>
+      </div>
+      <div>
+        <div class="name"><span>Busomad</span><small>live buses</small></div>
+        <div class="tag" data-i18n="tagline">Stop guessing. Start riding.</div>
+      </div>
+    </div>
+    <div class="seg" role="group" aria-label="Language" id="langseg">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="ru" aria-pressed="false">РУ</button>
+      <button type="button" data-lang="tg" aria-pressed="false">ТҶ</button>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Views" id="tabs">
+    <button type="button" data-tab="map" aria-current="page" data-i18n="tabMap">Map</button>
+    <button type="button" data-tab="board" data-i18n="tabBoard">Stop board</button>
+    <button type="button" data-tab="plan" data-i18n="tabPlan">Plan a trip</button>
+    <button type="button" data-tab="share" data-i18n="tabShare">Share my bus</button>
+    <button type="button" data-tab="admin" id="tab-admin" hidden data-i18n="tabAdmin">Routes</button>
+  </nav>
+
+  <!-- MAP -->
+  <section id="view-map" class="stage">
+    <div class="card">
+      <div class="mapbar">
+        <div class="clock"><span id="clock">--:--</span><small><span class="badge" id="live"><i></i><span id="live-t">…</span></span></small></div>
+        <div class="ctl">
+          <button type="button" class="btn" id="btn-tilt" aria-pressed="false" data-i18n="tilt">3D view</button>
+          <button type="button" class="btn" id="btn-fit" data-i18n="showAll">Show all routes</button>
+        </div>
+      </div>
+      <div class="recbar" id="recbar" hidden></div>
+      <div id="map" class="mapbox" role="region" aria-label="Map"></div>
+      <div class="legend" id="legend"></div>
+      <div class="routes" id="routes" role="group" aria-label="Routes"></div>
+      <p class="note" id="map-note"></p>
+    </div>
+    <div class="side">
+      <div class="card">
+        <div class="stoppick">
+          <label for="stop-sel" data-i18n="stop">Stop</label>
+          <select id="stop-sel"></select>
+        </div>
+        <h2 data-i18n="arrivals">Next arrivals</h2>
+        <div class="list" id="arrivals"></div>
+        <p class="note" data-i18n="followHint">Tap a bus on the map or a row above to follow it.</p>
+      </div>
+      <div class="card" id="buscard" hidden>
+        <div class="hd">
+          <h2 data-i18n="following">Following</h2>
+          <button type="button" class="btn" id="unfollow" data-i18n="unfollow">Stop following</button>
+        </div>
+        <div id="bus-head"></div>
+        <div id="bus-next"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOARD -->
+  <section id="view-board" hidden>
+    <div class="board">
+      <div class="board-band">BUS STOP · ОСТАНОВКА · ИСТГОҲ</div>
+      <div class="board-body">
+        <div>
+          <div class="b-head">
+            <div><div class="b-kicker" id="b-kicker">Next arrivals</div><div class="b-stop" id="b-stop"></div></div>
+            <div class="b-clock" id="b-clock">--:--</div>
+          </div>
+          <div class="b-cols" aria-hidden="true"><span id="bc-line">Line</span><span id="bc-dest">Destination</span><span id="bc-eta">Arrives</span></div>
+          <div class="b-rows" id="b-rows"></div>
+        </div>
+        <aside class="board-side">
+          <svg id="map-mini" class="mini" viewBox="0 0 340 260" role="img" aria-label="Buses near this stop"></svg>
+          <div class="qr-row">
+            <div class="qr" id="qr" aria-hidden="true"></div>
+            <div class="qr-t"><span id="b-scan">Scan for live times on your phone</span><small id="b-url"></small></div>
+          </div>
+        </aside>
+      </div>
+      <div class="board-ctl">
+        <div class="field"><label for="b-stop-sel" data-i18n="stop">Stop</label><select id="b-stop-sel"></select></div>
+        <label class="check"><input type="checkbox" id="b-rotate" checked><span data-i18n="rotate">Rotate languages</span></label>
+        <div class="langs" id="b-langs" aria-hidden="true"><span class="pill" data-bl="en">EN</span><span class="pill" data-bl="ru">РУ</span><span class="pill" data-bl="tg">ТҶ</span></div>
+        <button type="button" class="btn" id="b-full" data-i18n="fullscreen">Full screen</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAN -->
+  <section id="view-plan" hidden>
+    <div class="card">
+      <h2 data-i18n="planTitle">Which bus do I take?</h2>
+      <div class="planbar">
+        <div class="field"><label for="plan-from" data-i18n="from">From</label><select id="plan-from"></select></div>
+        <button type="button" class="btn" id="plan-swap" data-i18n="swap">Swap</button>
+        <div class="field"><label for="plan-to" data-i18n="to">To</label><select id="plan-to"></select></div>
+      </div>
+      <div class="results" id="plan-results"></div>
+      <p class="note" id="plan-note"></p>
+    </div>
+  </section>
+
+  <!-- SHARE -->
+  <section id="view-share" hidden>
+    <div class="card narrow stack" id="share-card"></div>
+  </section>
+
+  <!-- ADMIN -->
+  <section id="view-admin" hidden>
+    <div class="card narrow stack" id="admin-card"></div>
+  </section>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="theme.js"></script>
+<script src="net.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
