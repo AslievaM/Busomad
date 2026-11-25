@@ -28,3 +28,10 @@ PORT, ADMIN_CODE, DRIVER_CODE, PING_MS (60000), STALE_MS (200000), STYLE_URL, TI
 ## Tests
     node --test test/unit.js test/ui-logic.js      calculations, map theme, trip planner
     node test/e2e.js                               needs Playwright; simulated phones in a browser
+
+## Keeping routes and building them from tracks
+
+- Admin tab, "Download routes (backup)": saves `routes.json`. Put it in `data/routes.json` and push to GitHub. Render's free plan forgets routes on restart, the file in GitHub does not.
+- Driver card: open `/card.html` on the live site, fill in the code and route, print.
+- Build a route from recorded driver tracks: start the server with `PING_MS=5000`, let a driver share a full trip, then download the day's tracks (`/api/admin/tracks?day=YYYY-MM-DD`, header `X-Admin-Code`) and run
+  `node tools/build-route.js --in tracks-2026-11-25.ndjson --id 25 --name "Route 25" --merge data/routes.json`

@@ -44,7 +44,7 @@ const TILES = {
 };
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
-  '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json; charset=utf-8', '.ico': 'image/x-icon'
+  '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.json': 'application/json; charset=utf-8', '.ico': 'image/x-icon'
 };
 
 fs.mkdirSync(path.join(DATA_DIR, 'tracks'), { recursive: true });
@@ -171,6 +171,27 @@ const server = http.createServer((req, res) => {
   if (m === 'POST' && p === '/api/ping') return handlePing(req, res);
   if (m === 'POST' && p === '/api/leave') return handleLeave(req, res);
   if (m === 'GET' && p === '/api/admin/check') { if (admin(req, res)) json(res, 200, { ok: true }); return; }
+  if (m === 'GET' && p === '/api/admin/export') {
+    if (!admin(req, res)) return;
+    const body = JSON.stringify(Array.from(store.routes.values()).map((r) => r.def), null, 1);
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="routes.json"', 'Cache-Control': 'no-store' });
+    return res.end(body);
+  }
+  if (m === 'GET' && p === '/api/admin/tracks') {
+    if (!admin(req, res)) return;
+    const dir = path.join(DATA_DIR, 'tracks');
+    const day = url.searchParams.get('day');
+    if (!day) {
+      let files = [];
+      try { files = fs.readdirSync(dir).filter((f) => /^\d{4}-\d{2}-\d{2}\.ndjson$/.test(f)).map((f) => ({ day: f.slice(0, 10), bytes: fs.statSync(path.join(dir, f)).size })); } catch (e) { files = []; }
+      return json(res, 200, { files });
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return json(res, 400, { error: 'day must look like 2026-11-25' });
+    const file = path.join(dir, day + '.ndjson');
+    if (!fs.existsSync(file)) return json(res, 404, { error: 'no tracks for that day' });
+    res.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Content-Disposition': 'attachment; filename="tracks-' + day + '.ndjson"', 'Cache-Control': 'no-store' });
+    return fs.createReadStream(file).pipe(res);
+  }
   if (m === 'POST' && p === '/api/admin/route') {
     if (!admin(req, res)) return;
     return readBody(req, 600 * 1024, (err, body) => {

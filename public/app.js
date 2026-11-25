@@ -19,7 +19,7 @@
       colLine: 'Line', colDest: 'Destination', colEta: 'Arrives', kicker: 'Next arrivals', scan: 'Scan for live times on your phone', rotate: 'Rotate languages', fullscreen: 'Full screen',
       planTitle: 'Which bus do I take?', from: 'From', to: 'To', swap: 'Swap', direct: 'Direct', change1: '1 change', boardAt: 'Board at', nextIn: 'next bus in', noLive: 'no live bus now', ride: 'Ride', stopsWord: 'stops', getOff: 'get off at', changeAt: 'Change at', total: 'Total', same: 'Choose two different stops.', noRoute: 'No route found in the current network.', assumed: 'Waiting time at a change is assumed to be 5 minutes.',
       recNow: 'Recording a route. Use the bar above the map to add stops and to finish.', phone: 'phone', noRoutes: 'No routes yet. Open the Routes tab to record the first one.', mapNote: 'Live positions come from phones of drivers and passengers. Times are estimates.', fallbackMap: 'Basic map is shown because the styled map could not be loaded.',
-      shareTitle: 'Share my bus', iDrive: 'I drive', onBus: 'I am on a bus', waiting: 'I am waiting', waitingHelp: 'Your position stays on this phone. It only shows you on the map and finds the nearest stop. Nothing is sent.',
+      shareTitle: 'Share my bus', exportRoutes: 'Download routes (backup)', exportHint: 'Render forgets saved routes when it restarts. Download them, put the file in data/routes.json and push to GitHub.', exported: 'routes.json downloaded', iDrive: 'I drive', onBus: 'I am on a bus', waiting: 'I am waiting', waitingHelp: 'Your position stays on this phone. It only shows you on the map and finds the nearest stop. Nothing is sent.',
       onBusHelp: 'Optional. Your phone adds the bus position when no driver is sharing. Others see one bus, not you.', driveHelp: 'Your phone sends the bus position about once a minute while this page is open.',
       route: 'Route', vehicle: 'Vehicle', start: 'Start', stopShare: 'Stop', driverCode: 'Driver code', localOnly: 'Your location stays on this phone. Nothing is sent.', sharingNow: 'Sharing. A position goes out every', gps: 'Waiting for GPS…', lastSent: 'Last sent', ago: 'ago', offRoute: 'You are off the route line', tracked: 'Matched to the route',
       gpsDenied: 'Location is blocked. Allow it in the browser settings.', noGps: 'This browser has no location.', needRoute: 'Choose a route first.', sentFail: 'Could not reach the server', wrongCode: 'Wrong driver code', nearest: 'Nearest stop', away: 'away', showStop: 'Show arrivals',
@@ -32,7 +32,7 @@
       colLine: 'Линия', colDest: 'Куда', colEta: 'Прибытие', kicker: 'Ближайшие автобусы', scan: 'Сканируйте, чтобы видеть время в телефоне', rotate: 'Менять язык', fullscreen: 'На весь экран',
       planTitle: 'На каком автобусе ехать?', from: 'Откуда', to: 'Куда', swap: 'Поменять', direct: 'Без пересадок', change1: '1 пересадка', boardAt: 'Садитесь на', nextIn: 'следующий через', noLive: 'нет данных о ближайшем', ride: 'Проехать', stopsWord: 'ост.', getOff: 'выйти на', changeAt: 'Пересадка на', total: 'Всего', same: 'Выберите две разные остановки.', noRoute: 'Маршрут в сети не найден.', assumed: 'Ожидание на пересадке принято равным 5 минутам.',
       recNow: 'Идёт запись маршрута. Остановки и завершение — в панели над картой.', phone: 'телефон', noRoutes: 'Маршрутов пока нет. Запишите первый во вкладке «Маршруты».', mapNote: 'Положение автобусов передают телефоны водителей и пассажиров. Время приблизительное.', fallbackMap: 'Показана простая карта: стилизованную загрузить не удалось.',
-      shareTitle: 'Мой автобус', iDrive: 'Я за рулём', onBus: 'Я в автобусе', waiting: 'Я жду', waitingHelp: 'Ваше положение остаётся на этом телефоне. Оно только показывает вас на карте и находит ближайшую остановку. Ничего не отправляется.',
+      shareTitle: 'Мой автобус', exportRoutes: 'Скачать маршруты (копия)', exportHint: 'Render забывает сохранённые маршруты при перезапуске. Скачайте файл, положите его в data/routes.json и отправьте на GitHub.', exported: 'routes.json скачан', iDrive: 'Я за рулём', onBus: 'Я в автобусе', waiting: 'Я жду', waitingHelp: 'Ваше положение остаётся на этом телефоне. Оно только показывает вас на карте и находит ближайшую остановку. Ничего не отправляется.',
       onBusHelp: 'По желанию. Телефон добавляет положение автобуса, если водитель не передаёт. Другие видят один автобус, а не вас.', driveHelp: 'Телефон отправляет положение автобуса примерно раз в минуту, пока страница открыта.',
       route: 'Маршрут', vehicle: 'Транспорт', start: 'Начать', stopShare: 'Остановить', driverCode: 'Код водителя', localOnly: 'Ваше положение остаётся на этом телефоне. Ничего не отправляется.', sharingNow: 'Передача включена. Положение уходит каждые', gps: 'Ждём GPS…', lastSent: 'Отправлено', ago: 'назад', offRoute: 'Вы вне линии маршрута', tracked: 'Привязано к маршруту',
       gpsDenied: 'Геолокация заблокирована. Разрешите её в настройках браузера.', noGps: 'В этом браузере нет геолокации.', needRoute: 'Сначала выберите маршрут.', sentFail: 'Нет связи с сервером', wrongCode: 'Неверный код водителя', nearest: 'Ближайшая остановка', away: 'от вас', showStop: 'Показать автобусы',
@@ -45,7 +45,7 @@
       colLine: 'Хат', colDest: 'Ба кучо', colEta: 'Мерасад', kicker: 'Автобусҳои наздик', scan: 'Барои дидани вақт дар телефон скан кунед', rotate: 'Иваз кардани забон', fullscreen: 'Экрани пурра',
       planTitle: 'Бо кадом автобус равам?', from: 'Аз', to: 'То', swap: 'Ивазкунӣ', direct: 'Рост', change1: '1 ивазкунӣ', boardAt: 'Нишастан дар', nextIn: 'автобуси оянда баъд аз', noLive: 'маълумот нест', ride: 'Рафтан', stopsWord: 'истгоҳ', getOff: 'фаромадан дар', changeAt: 'Ивазкунӣ дар', total: 'Ҳама', same: 'Ду истгоҳи гуногунро интихоб кунед.', noRoute: 'Хатсайр ёфт нашуд.', assumed: 'Интизорӣ ҳангоми ивазкунӣ 5 дақиқа ҳисоб шудааст.',
       recNow: 'Сабти хатсайр идома дорад. Истгоҳҳо ва анҷомро дар навори болои харита илова кунед.', phone: 'телефон', noRoutes: 'Ҳоло хатсайр нест. Аввалинро дар «Хатсайрҳо» сабт кунед.', mapNote: 'Мавқеи автобусҳоро телефонҳои ронандаҳо ва мусофирон мефиристанд. Вақт тахминӣ аст.', fallbackMap: 'Харитаи оддӣ нишон дода шуд: услубдор бор нашуд.',
-      shareTitle: 'Автобуси ман', iDrive: 'Ман ронандаам', onBus: 'Ман дар автобус', waiting: 'Ман интизорам', waitingHelp: 'Мавқеи шумо дар ин телефон мемонад. Он танҳо шуморо дар харита нишон медиҳад ва истгоҳи наздикро меёбад. Ҳеҷ чиз фиристода намешавад.',
+      shareTitle: 'Автобуси ман', exportRoutes: 'Боргирии хатсайрҳо (нусха)', exportHint: 'Render хатсайрҳои захирашударо ҳангоми нав шудан фаромӯш мекунад. Файлро боргирӣ карда, ба data/routes.json гузоред ва ба GitHub фиристед.', exported: 'routes.json боргирӣ шуд', iDrive: 'Ман ронандаам', onBus: 'Ман дар автобус', waiting: 'Ман интизорам', waitingHelp: 'Мавқеи шумо дар ин телефон мемонад. Он танҳо шуморо дар харита нишон медиҳад ва истгоҳи наздикро меёбад. Ҳеҷ чиз фиристода намешавад.',
       onBusHelp: 'Ихтиёрӣ. Агар ронанда нафиристад, телефон мавқеи автобусро илова мекунад. Дигарон як автобусро мебинанд, на шуморо.', driveHelp: 'Телефон мавқеи автобусро тақрибан ҳар дақиқа мефиристад, то ин саҳифа кушода аст.',
       route: 'Хатсайр', vehicle: 'Нақлиёт', start: 'Оғоз', stopShare: 'Қатъ', driverCode: 'Рамзи ронанда', localOnly: 'Мавқеи шумо дар ин телефон мемонад. Ҳеҷ чиз фиристода намешавад.', sharingNow: 'Мубодила фаъол аст. Мавқеъ ҳар', gps: 'Интизори GPS…', lastSent: 'Фиристода шуд', ago: 'пеш', offRoute: 'Шумо берун аз хатсайр ҳастед', tracked: 'Ба хатсайр пайваст шуд',
       gpsDenied: 'Ҷойгиршавӣ масдуд аст. Дар танзимоти браузер иҷозат диҳед.', noGps: 'Ин браузер ҷойгиршавӣ надорад.', needRoute: 'Аввал хатсайрро интихоб кунед.', sentFail: 'Сервер дастнорас аст', wrongCode: 'Рамзи ронанда нодуруст', nearest: 'Истгоҳи наздик', away: 'дуртар', showStop: 'Нишон додани автобусҳо',
@@ -532,6 +532,7 @@
       if (RC.err) h += '<div class="msg err">' + esc(RC.err) + '</div>';
       h += '<div class="ctl"><button type="button" class="btn primary" id="rc-start">' + esc(t('recStart')) + '</button>' + (RC.pts.length > 1 ? '<button type="button" class="btn" id="rc-save">' + esc(t('recStop')) + '</button>' : '') + '</div>';
       if (S.routes.length) h += '<div class="field"><label for="rc-del">' + esc(t('del')) + '</label><div class="ctl"><select id="rc-del" style="flex:1">' + S.routes.map((r) => '<option value="' + esc(r.id) + '">' + esc(r.id + ' · ' + r.name) + '</option>').join('') + '</select><button type="button" class="btn" id="rc-delbtn">' + esc(t('del')) + '</button></div></div>';
+      h += '<div class="ctl"><button type="button" class="btn" id="rc-export">' + esc(t('exportRoutes')) + '</button></div><p class="muted" style="margin:0">' + esc(t('exportHint')) + '</p>';
     } else {
       h += '<div class="msg">' + esc(t('recNow')) + '</div>';
     }
@@ -542,6 +543,12 @@
       $('rc-type').onchange = () => { RC.type = $('rc-type').value; };
       $('rc-two').onchange = () => { RC.twoWay = $('rc-two').checked; };
       $('rc-start').onclick = recStart;
+      $('rc-export').onclick = () => {
+        fetch('/api/admin/export', { headers: { 'X-Admin-Code': RC.code } }).then((r) => { if (!r.ok) throw new Error(r.status === 401 ? 'Wrong admin code' : 'Export failed'); return r.blob(); }).then((b) => {
+          const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'routes.json'; document.body.appendChild(a); a.click(); a.remove();
+          RC.msg = t('exported'); RC.err = ''; renderAdmin();
+        }).catch((e) => { RC.err = e.message; renderAdmin(); });
+      };
       if ($('rc-save')) $('rc-save').onclick = recSave;
       if ($('rc-delbtn')) $('rc-delbtn').onclick = () => {
         api('/api/admin/route?id=' + encodeURIComponent($('rc-del').value), { method: 'DELETE', headers: { 'X-Admin-Code': RC.code } }).then(() => { RC.msg = t('saved'); RC.err = ''; return loadRoutes(); }).catch((e) => { RC.err = e.message; renderAdmin(); });
@@ -639,4 +646,5 @@
   }
   window.__rasid = { S: S, SH: SH, RC: RC };   // handy for support and tests
   boot();
+  try { if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/sw.js').catch(function () {}); } catch (e) {}
 })();

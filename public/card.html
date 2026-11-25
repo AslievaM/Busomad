@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Busomad driver card</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+:root { --bg:#08120F; --panel:#10201B; --line:#2A453D; --fg:#F2F6F3; --dim:#A9BDB3; --amber:#F2A900; --paper:#FFFFFF; --ink:#10150F; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.45 Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding:16px; }
+.wrap { max-width: 960px; margin: 0 auto; display:flex; flex-direction:column; gap:16px; }
+h1 { font-size:22px; margin:0; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+.row { display:flex; gap:12px; flex-wrap:wrap; }
+.field { display:flex; flex-direction:column; gap:4px; flex:1 1 220px; min-width:0; }
+label { font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--dim); }
+input { background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font:inherit; min-width:0; }
+.seg { display:flex; gap:8px; flex-wrap:wrap; }
+button { background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:10px; padding:10px 14px; font:inherit; cursor:pointer; }
+button[aria-pressed="true"], button.primary { background:var(--amber); color:var(--ink); border-color:var(--amber); font-weight:600; }
+.muted { color:var(--dim); margin:0; font-size:13px; }
+#cards { display:flex; gap:16px; flex-wrap:wrap; }
+.card { background:var(--paper); color:var(--ink); border-radius:14px; padding:20px; flex:1 1 300px; max-width:440px; display:flex; flex-direction:column; gap:12px; break-inside:avoid; }
+.card header { display:flex; align-items:center; gap:12px; }
+.card header img { width:44px; height:44px; border-radius:10px; }
+.card h2 { margin:0; font-size:22px; line-height:1.1; }
+.card h2 small { display:block; font-size:12px; font-weight:500; color:#4B5A52; }
+.card ol { margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px; }
+.card .box { display:flex; gap:12px; align-items:center; border:2px solid var(--ink); border-radius:12px; padding:10px; }
+.card .box > div { min-width:0; flex:1; }
+.card .k { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#4B5A52; }
+.card .v { font-size:18px; font-weight:700; overflow-wrap:anywhere; }
+.card .qr { width:96px; height:96px; flex:none; }
+.card .qr svg, .card .qr img { width:100%; height:100%; }
+.card footer { font-size:12px; color:#4B5A52; }
+@media print {
+  body { background:#fff; padding:0; }
+  .noprint { display:none !important; }
+  .wrap { max-width:none; }
+  #cards { gap:8mm; }
+  .card { border:1px solid #999; border-radius:6px; flex:1 1 90mm; max-width:none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel noprint">
+    <h1>Busomad driver card</h1>
+    <p class="muted">Fill in the three boxes, choose a language and print. The driver code stays in this browser: it is not sent anywhere. Hand the printed card only to drivers.</p>
+    <div class="row">
+      <div class="field"><label for="f-link">App link</label><input id="f-link" type="url" inputmode="url" autocomplete="off"></div>
+      <div class="field"><label for="f-code">Driver code</label><input id="f-code" type="text" autocomplete="off"></div>
+      <div class="field"><label for="f-route">Route name</label><input id="f-route" type="text" autocomplete="off" placeholder="for example 25"></div>
+    </div>
+    <div class="seg" id="langs" role="group" aria-label="Language">
+      <button type="button" data-l="all" aria-pressed="true">All three</button>
+      <button type="button" data-l="tg" aria-pressed="false">Тоҷикӣ</button>
+      <button type="button" data-l="ru" aria-pressed="false">Русский</button>
+      <button type="button" data-l="en" aria-pressed="false">English</button>
+      <button type="button" class="primary" id="print">Print</button>
+    </div>
+    <p class="muted">The Tajik text is a draft. Ask a native speaker to read it before you print many copies.</p>
+  </div>
+  <div id="cards"></div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var T = {
+    en: { t: 'Busomad', sub: 'Driver card', k1: 'Link', k2: 'Driver code', k3: 'Route', foot: 'Share only while you drive. Your position is shown to riders as a bus dot.',
+      steps: ['Open the link in Chrome (Android) or Safari (iPhone).', 'Install it: Chrome menu, then Install app. On iPhone: Share, then Add to Home Screen.', 'Open "Share my bus" and tap "I drive".', 'Pick your route, type the driver code and tap "Start".', 'Keep the screen on and the phone charging in a holder. At the end of the trip tap "Stop".'] },
+    ru: { t: 'Busomad', sub: 'Карточка водителя', k1: 'Ссылка', k2: 'Код водителя', k3: 'Маршрут', foot: 'Включайте передачу только за рулём. Пассажиры видят ваше положение как точку автобуса.',
+      steps: ['Откройте ссылку в Chrome (Android) или Safari (iPhone).', 'Установите: меню Chrome, затем «Установить приложение». На iPhone: «Поделиться», затем «На экран Домой».', 'Откройте «Мой автобус» и нажмите «Я за рулём».', 'Выберите маршрут, введите код водителя и нажмите «Начать».', 'Держите экран включённым, а телефон на зарядке в держателе. В конце рейса нажмите «Остановить».'] },
+    tg: { t: 'Busomad', sub: 'Корти ронанда', k1: 'Пайванд', k2: 'Рамзи ронанда', k3: 'Хатсайр', foot: 'Мубодиларо танҳо ҳангоми рондан фаъол кунед. Мусофирон мавқеи шуморо ҳамчун нуқтаи автобус мебинанд.',
+      steps: ['Пайвандро дар Chrome (Android) ё Safari (iPhone) кушоед.', 'Насб кунед: менюи Chrome, баъд «Насби барнома». Дар iPhone: «Мубодила», баъд «Ба экрани асосӣ».', '«Автобуси ман»-ро кушоед ва «Ман ронандаам»-ро пахш кунед.', 'Хатсайрро интихоб кунед, рамзи ронандаро ворид кунед ва «Оғоз»-ро пахш кунед.', 'Экранро фаъол нигоҳ доред, телефонро дар нигоҳдошанда ва дар зарядкунӣ гузоред. Дар охири рейс «Қатъ»-ро пахш кунед.'] }
+  };
+  var ORDER = ['tg', 'ru', 'en'];
+  var f = { link: document.getElementById('f-link'), code: document.getElementById('f-code'), route: document.getElementById('f-route') };
+  var cur = 'all';
+  f.link.value = location.origin;
+
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function qr(url) {
+    var box = el('div', 'qr');
+    try { var q = window.qrcode(0, 'M'); q.addData(url); q.make(); box.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); } catch (e) { return null; }   // no internet for the QR script: the link text still shows
+    return box;
+  }
+  function card(l) {
+    var d = T[l], c = el('section', 'card'); c.lang = l;
+    var h = el('header'); var img = el('img'); img.src = '/icon.svg'; img.alt = ''; h.appendChild(img);
+    var h2 = el('h2', null, d.t); h2.appendChild(el('small', null, d.sub)); h.appendChild(h2); c.appendChild(h);
+    var ol = el('ol'); d.steps.forEach(function (s) { ol.appendChild(el('li', null, s)); }); c.appendChild(ol);
+    var b1 = el('div', 'box'); var m = el('div'); m.appendChild(el('div', 'k', d.k1)); m.appendChild(el('div', 'v', f.link.value.replace(/^https?:\/\//, ''))); b1.appendChild(m); var qrBox = qr(f.link.value); if (qrBox) b1.appendChild(qrBox); c.appendChild(b1);
+    var b2 = el('div', 'box'); var a = el('div'); a.appendChild(el('div', 'k', d.k2)); a.appendChild(el('div', 'v', f.code.value || '—')); b2.appendChild(a);
+    var r = el('div'); r.appendChild(el('div', 'k', d.k3)); r.appendChild(el('div', 'v', f.route.value || '—')); b2.appendChild(r); c.appendChild(b2);
+    c.appendChild(el('footer', null, d.foot));
+    return c;
+  }
+  function render() {
+    var box = document.getElementById('cards'); box.textContent = '';
+    (cur === 'all' ? ORDER : [cur]).forEach(function (l) { box.appendChild(card(l)); });
+  }
+  Object.keys(f).forEach(function (k) { f[k].addEventListener('input', render); });
+  document.querySelectorAll('#langs [data-l]').forEach(function (b) {
+    b.addEventListener('click', function () { cur = b.dataset.l; document.querySelectorAll('#langs [data-l]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); render(); });
+  });
+  document.getElementById('print').addEventListener('click', function () { window.print(); });
+  render();
+})();
+</script>
+</body>
+</html>
